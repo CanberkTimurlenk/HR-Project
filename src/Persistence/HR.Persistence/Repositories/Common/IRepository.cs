@@ -13,47 +13,45 @@ public abstract class EfBaseRepository<TEntity>(HrDbContext context) : IReposito
 
     protected DbSet<TEntity> Table => context.Set<TEntity>();
 
-    public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> filter)
+    public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken)
 
-        => await context.Set<TEntity>().AnyAsync(filter);
+        => await context.Set<TEntity>().AnyAsync(filter, cancellationToken);
 
-    public async Task<int> CountAsync(Expression<Func<TEntity, bool>> filter)
+    public async Task<int> CountAsync(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken)
 
-        => await context.Set<TEntity>().CountAsync(filter);
+        => await context.Set<TEntity>().CountAsync(filter, cancellationToken);
 
-    public async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> filter = null!)
+    public async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken, Expression<Func<TEntity, bool>> filter = null!)
     {
         if (filter == null)
-            return await Table.ToListAsync();
+            return await Table.ToListAsync(cancellationToken);
         else
-            return await Table.Where(filter).ToListAsync();
+            return await Table.Where(filter).ToListAsync(cancellationToken);
     }
 
-    public async Task<TEntity?> FindAsync(Guid id)
+    public async Task<TEntity?> FindAsync(int id, CancellationToken cancellationToken)
 
-        => await Table.FindAsync(id);
+        => await Table.FindAsync([id], cancellationToken: cancellationToken);
 
-    public async Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> filter)
+    public async Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken)
 
-        => await Table.FirstOrDefaultAsync(filter);
+        => await Table.FirstOrDefaultAsync(filter, cancellationToken);
 
-    public async Task AddRangeAsync(IEnumerable<TEntity> entities)
-    {
-        await context.AddRangeAsync(entities);
-    }
+    public async Task AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken)
 
-    public async Task AddAsync(TEntity entity)
-    {
-        await Table.AddAsync(entity);
-    }
+        => await context.AddRangeAsync(entities, cancellationToken);
+
+    public async Task AddAsync(TEntity entity, CancellationToken cancellationToken)
+
+        => await Table.AddAsync(entity, cancellationToken);
 
     public void RemoveRange(IEnumerable<TEntity> entities)
 
         => Table.RemoveRange(entities);
 
-    public async Task RemoveByIdAsync(Guid id)
+    public async Task RemoveByIdAsync(int id, CancellationToken cancellationToken)
     {
-        var entity = await FindAsync(id);
+        var entity = await FindAsync(id, cancellationToken);
 
         if (entity is not null)
             Table.Remove(entity);
@@ -66,5 +64,9 @@ public abstract class EfBaseRepository<TEntity>(HrDbContext context) : IReposito
     public void Update(TEntity entity)
 
         => Table.Update(entity);
+
+    public Task SaveChangesAsync(CancellationToken cancellationToken)
+
+        => context.SaveChangesAsync(cancellationToken);
 
 }

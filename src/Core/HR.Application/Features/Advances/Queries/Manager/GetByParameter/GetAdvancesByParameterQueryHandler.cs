@@ -1,25 +1,18 @@
 ﻿using AutoMapper;
-using HR.Data.Contexts;
+using HR.Application.Contracts.Repositories.Advances;
 using HR.Domain.Entities.Concrete;
 using HR.Schema.Response;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
-namespace HR.Application.Features.Advances.Queries.GetByParameter;
+namespace HR.Application.Features.Advances.Queries.Manager.GetByParameter;
 
-public class GetAdvancesByParameterQueryHandler(HrDbContext dbContext, IMapper mapper)
+public class GetAdvancesByParameterQueryHandler(IAdvanceRepository advanceRepository, IMapper mapper)
     : IRequestHandler<GetAdvancesByParameterQuery, ApiResponse<IEnumerable<AdvanceResponse>>>
 {
-    private readonly HrDbContext dbContext = dbContext;
+    private readonly IAdvanceRepository advanceRepository = advanceRepository;
     private readonly IMapper mapper = mapper;
     public async Task<ApiResponse<IEnumerable<AdvanceResponse>>> Handle(GetAdvancesByParameterQuery request, CancellationToken cancellationToken)
     {
-        if (request.Role == "employee" && request.UserId != request.EmployeeId)
-            return new ApiResponse<IEnumerable<AdvanceResponse>>("You have not access to advances");
-
-
-        IQueryable<Advance> query = dbContext.Advances.Include(a => a.CreatorEmployee);
-
 
         if (request.EmployeeId != null)
             query = query.Where(x => x.CreatorEmployeeId == request.EmployeeId);

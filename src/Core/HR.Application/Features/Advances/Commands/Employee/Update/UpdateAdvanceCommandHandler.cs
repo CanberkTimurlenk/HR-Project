@@ -1,24 +1,22 @@
-﻿using AutoMapper;
-using HR.Data.Contexts;
-using MediatR;
+﻿using MediatR;
 using HR.Domain.Enums;
 using HR.Schema.Response;
+using HR.Application.Contracts.Repositories.Advances;
 
 namespace HR.Application.Features.Advances.Commands.Employee.Update;
-public class UpdateAdvanceCommandHandler(HrDbContext dbContext) :
+public class UpdateAdvanceCommandHandler(IAdvanceRepository advanceRepository) :
     IRequestHandler<UpdateAdvanceCommand, ApiResponse>
 {
-    private readonly HrDbContext dbContext = dbContext;
+    private readonly IAdvanceRepository advanceRepository = advanceRepository;
 
     public async Task<ApiResponse> Handle(UpdateAdvanceCommand request, CancellationToken cancellationToken)
     {
-
-        var expense = await dbContext.Advances.FindAsync([request.AdvanceId], cancellationToken: cancellationToken);
+        var expense = await advanceRepository.FindAsync(request.AdvanceId, cancellationToken);
 
         if (expense == null)
             return new ApiResponse("Not Found!");
 
-        if (request.UserId != expense.CreatorEmployeeId)
+        if (request.EmployeeId != expense.CreatorEmployeeId)
             return new ApiResponse("You have not access to update this advance");
 
         if (expense.ApprovalStatus != ApprovalStatus.Pending)
@@ -26,12 +24,8 @@ public class UpdateAdvanceCommandHandler(HrDbContext dbContext) :
 
         expense.CurrencyType = (CurrencyType)request.Model.CurrencyType;
         expense.Amount = request.Model.Amount;
-        //expense.AdvanceType = (AdvanceType)request.Model.AdvanceType;
 
-
-
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await advanceRepository.SaveChangesAsync(cancellationToken);
         return new ApiResponse();
     }
 }

@@ -1,6 +1,4 @@
-﻿using HR.Data.Entities;
-using HR.Data.Enums;
-using HR.Schema.Response;
+﻿using HR.Schema.Response;
 using MediatR;
 
 namespace HR.Application.Features.Advances.Commands.Employee.Create;

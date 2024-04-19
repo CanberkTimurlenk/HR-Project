@@ -13,5 +13,5 @@ public class AdvanceResponse
     public decimal Amount { get; set; }
     public int CurrencyType { get; set; }
     public string Description { get; set; }
-    public int UserId { get; set; }
+    public int CreatorEmployeeId { get; set; }
 }

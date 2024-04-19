@@ -1,17 +1,17 @@
-﻿using HR.Data.Contexts;
+﻿using HR.Application.Contracts.Repositories.Advances;
 using HR.Domain.Enums;
 using HR.Schema.Response;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace HR.Application.Features.Advances.Commands.Manager.Approve;
-public class ApproveAdvanceCommandHandler(HrDbContext dbContext)
+public class ApproveAdvanceCommandHandler(IAdvanceRepository advanceRepository)
     : IRequestHandler<ApproveAdvanceCommand, ApiResponse>
-
 {
+    private readonly IAdvanceRepository advanceRepository = advanceRepository;
+
     public async Task<ApiResponse> Handle(ApproveAdvanceCommand request, CancellationToken cancellationToken)
     {
-        var advances = await dbContext.Advances.Where(x => request.Id.Contains(x.Id)).ToListAsync(cancellationToken: cancellationToken);
+        var advances = await advanceRepository.GetAllAsync(cancellationToken, a => request.Id.Contains(a.Id));
 
         if (advances.Any(x => x.ApprovalStatus != ApprovalStatus.Pending))
             return new ApiResponse("Only pending advances could be approved");
@@ -22,7 +22,7 @@ public class ApproveAdvanceCommandHandler(HrDbContext dbContext)
             advance.ResponseDate = DateTime.Now;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await advanceRepository.SaveChangesAsync(cancellationToken);
         return new ApiResponse();
     }
 }
